@@ -38,10 +38,7 @@ def get_subject(line, encoding, cipher):
     if encoding != 'utf-8':
         decoded = decoded.decode(encoding)
     else:
-        try:
             decoded = unicode(decoded, "utf-8", 'ignore')
-        except:
-            print("ok")
     return decoded
 
 
