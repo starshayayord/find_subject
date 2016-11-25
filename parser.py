@@ -38,7 +38,11 @@ def get_subject(line, encoding, cipher):
     if encoding != 'utf-8':
         decoded = decoded.decode(encoding)
     else:
+        try:
             decoded = unicode(decoded, "utf-8", 'ignore')
+        except:
+            print("ERROR while parsing: ", subject, encoding, cipher)
+            raise ValueError("Error while decoding subject: maybe mixed encoding/cipher")
     return decoded
 
 
@@ -55,6 +59,7 @@ def get_date(line, max):
 def is_subject_get_encoding(line):
     encoding  = ''
     cipher = ''
+    #TO DO: mixed encoding line = 'Subject: =?utf-8?b?W1NlbnRyeV0gW1NlbnRyeSBFbGJhXSBGQVRBTDog0J3QtSDQvdCw0LnQtNC1?=? =?utf-8?b?0L0g0L/QsNGA0LDQvNC10YLRgCAnbW9kZScsIGFuZCB0aGUgbWVzc2FnZSB3?=? =?utf-8?q?as_=5BUnhandled_exception=5D?= from'
     if 'Subject:' in line:
         mixed = re.search(r'Subject: =\?(.*?)\?(\w)\?', line)
         if mixed:
@@ -70,17 +75,20 @@ def main(in_files, out_file, pattern, max_date):
             for line in f:
                 encoding, cipher = is_subject_get_encoding(line)
                 if encoding and cipher:
-                    subject = get_subject(line, encoding, cipher)
                     try:
-                        if pattern in subject:
-                            if get_date(line, max_date):
-                                with open(out_file, 'a') as outfile:
-                                    outfile.write("%s \n" % str(line))
+                        subject = get_subject(line, encoding, cipher)
+                        try:
+                            if pattern in subject:
+                                if get_date(line, max_date):
+                                    with open(out_file, 'a') as outfile:
+                                        outfile.write("%s \n" % str(line))
+                        except:
+                            print("Error while date comparsion")
                     except:
-                        print(line)
+                        continue
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
-pattern = 'получен'
+pattern = 'поступило требование'
 pattern = unicode(pattern, "utf-8")
 in_files = 'C:\\MINELOGS\\maillog*'
 out_file = 'C:\\MINELOGS\\matched_subject.log'
